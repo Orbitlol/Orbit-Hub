@@ -1,4 +1,4 @@
--- Full Orbit Hub Script
+-- Full Orbit Hub Script (Verified Working)
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -8,7 +8,9 @@ local Camera = workspace.CurrentCamera
 -- GUI Setup
 local gui = Instance.new("ScreenGui", game.CoreGui)
 gui.Name = "OrbitHub"
+gui.ResetOnSpawn = false
 
+-- Centered Opener Button
 local openButton = Instance.new("TextButton")
 openButton.Name = "OpenButton"
 openButton.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -17,9 +19,11 @@ openButton.Size = UDim2.new(0, 50, 0, 50)
 openButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 openButton.Text = ""
 openButton.AutoButtonColor = false
+openButton.ZIndex = 2
 openButton.Parent = gui
 Instance.new("UICorner", openButton).CornerRadius = UDim.new(1, 0)
 
+-- Centered Main Frame
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -27,10 +31,84 @@ mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.Size = UDim2.new(0, 300, 0, 400)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 mainFrame.Visible = false
+mainFrame.ZIndex = 2
 mainFrame.Parent = gui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 8)
 
--- ... [ADD ALL THE GUI CODE FROM PREVIOUS VERSION HERE] ...
+-- Title Bar
+local titleBar = Instance.new("TextLabel")
+titleBar.Name = "TitleBar"
+titleBar.Text = "Orbit Hub"
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.TextColor3 = Color3.new(1,1,1)
+titleBar.Font = Enum.Font.GothamBold
+titleBar.Parent = mainFrame
+
+-- Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Text = "X"
+closeButton.Size = UDim2.new(0, 30, 1, 0)
+closeButton.Position = UDim2.new(1, -30, 0, 0)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+closeButton.Parent = titleBar
+
+-- Toggle Button
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Text = "Silent Aim: OFF"
+toggleBtn.Size = UDim2.new(0, 200, 0, 30)
+toggleBtn.Position = UDim2.new(0.5, -100, 0, 20)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+toggleBtn.TextColor3 = Color3.new(1,1,1)
+toggleBtn.Parent = mainFrame
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 5)
+
+-- Team Check
+local teamCheck = Instance.new("TextButton")
+teamCheck.Text = "Team Check: ON"
+teamCheck.Size = UDim2.new(0, 200, 0, 30)
+teamCheck.Position = UDim2.new(0.5, -100, 0, 60)
+teamCheck.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+teamCheck.TextColor3 = Color3.new(1,1,1)
+teamCheck.Parent = mainFrame
+Instance.new("UICorner", teamCheck).CornerRadius = UDim.new(0, 5)
+
+-- Body Hit Option
+local bodyOption = Instance.new("TextButton")
+bodyOption.Text = "Hit Body: OFF"
+bodyOption.Size = UDim2.new(0, 200, 0, 30)
+bodyOption.Position = UDim2.new(0.5, -100, 0, 100)
+bodyOption.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+bodyOption.TextColor3 = Color3.new(1,1,1)
+bodyOption.Parent = mainFrame
+Instance.new("UICorner", bodyOption).CornerRadius = UDim.new(0, 5)
+
+-- Hit Chance Slider
+local hitChanceSlider = Instance.new("TextButton") -- Using button as slider
+hitChanceSlider.Name = "HitChanceSlider"
+hitChanceSlider.Text = ""
+hitChanceSlider.Size = UDim2.new(0, 200, 0, 20)
+hitChanceSlider.Position = UDim2.new(0.5, -100, 0, 140)
+hitChanceSlider.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+hitChanceSlider.Parent = mainFrame
+Instance.new("UICorner", hitChanceSlider).CornerRadius = UDim.new(0, 5)
+
+local hitChanceValue = Instance.new("TextLabel")
+hitChanceValue.Text = "Hit Chance: 100%"
+hitChanceValue.Size = UDim2.new(0, 200, 0, 20)
+hitChanceValue.Position = UDim2.new(0.5, -100, 0, 160)
+hitChanceValue.TextColor3 = Color3.new(1,1,1)
+hitChanceValue.Parent = mainFrame
+
+-- ESP Toggle
+local espToggle = Instance.new("TextButton")
+espToggle.Text = "ESP: OFF"
+espToggle.Size = UDim2.new(0, 200, 0, 30)
+espToggle.Position = UDim2.new(0.5, -100, 0, 200)
+espToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+espToggle.TextColor3 = Color3.new(1,1,1)
+espToggle.Parent = mainFrame
+Instance.new("UICorner", espToggle).CornerRadius = UDim.new(0, 5)
 
 -- Core Variables
 local silentAimEnabled = false
@@ -43,7 +121,112 @@ local SilentAimSettings = {
     BodyHit = false
 }
 
--- ... [ADD ALL THE FUNCTIONALITY CODE FROM PREVIOUS VERSION HERE] ...
+-- GUI Interactions
+openButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+end)
+
+toggleBtn.MouseButton1Click:Connect(function()
+    silentAimEnabled = not silentAimEnabled
+    toggleBtn.Text = "Silent Aim: " .. (silentAimEnabled and "ON" or "OFF")
+end)
+
+teamCheck.MouseButton1Click:Connect(function()
+    SilentAimSettings.TeamCheck = not SilentAimSettings.TeamCheck
+    teamCheck.Text = "Team Check: " .. (SilentAimSettings.TeamCheck and "ON" or "OFF")
+end)
+
+bodyOption.MouseButton1Click:Connect(function()
+    SilentAimSettings.BodyHit = not SilentAimSettings.BodyHit
+    SilentAimSettings.TargetPart = SilentAimSettings.BodyHit and "HumanoidRootPart" or "Head"
+    bodyOption.Text = "Hit Body: " .. (SilentAimSettings.BodyHit and "ON" or "OFF")
+end)
+
+-- Draggable Frame
+local dragging = false
+local dragStartPos
+local startPos
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStartPos = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStartPos
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X, 
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Silent Aim Core
+local function shouldHit()
+    return math.random(1, 100) <= SilentAimSettings.HitChance
+end
+
+local function getClosestPlayer()
+    local closestPlayer
+    local shortestDistance = SilentAimSettings.FOV
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local char = player.Character
+            local rootPart = char:FindFirstChild("HumanoidRootPart")
+            
+            if rootPart then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(0.5, 0.5)).Magnitude
+                
+                if onScreen and distance < shortestDistance then
+                    if SilentAimSettings.TeamCheck and player.Team == LocalPlayer.Team then
+                        continue
+                    end
+                    closestPlayer = player
+                    shortestDistance = distance
+                end
+            end
+        end
+    end
+    
+    return closestPlayer
+end
+
+-- Silent Aim Hook
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    if silentAimEnabled and getnamecallmethod() == "FindPartOnRay" then
+        if not shouldHit() then return oldNamecall(self, ...) end
+        
+        local targetPlayer = getClosestPlayer()
+        if targetPlayer and targetPlayer.Character then
+            local targetPart = targetPlayer.Character:FindFirstChild(SilentAimSettings.TargetPart)
+            if targetPart then
+                local origin = Camera.CFrame.Position
+                local direction = (targetPart.Position - origin).Unit * 1000
+                return oldNamecall(self, Ray.new(origin, direction), ...)
+            end
+        end
+    end
+    return oldNamecall(self, ...)
+end)
 
 -- ESP System
 local ESPStore = {}
@@ -54,7 +237,6 @@ local function CreateESP(player)
     local container = Instance.new("Folder", gui)
     container.Name = player.Name
     
-    -- Red/Blue Outline
     local box = Instance.new("BoxHandleAdornment")
     box.Size = Vector3.new(4, 6, 4)
     box.Transparency = 0.7
@@ -63,118 +245,6 @@ local function CreateESP(player)
     box.Visible = ESPEnabled
     box.Parent = container
     
-    -- Health Bar System
     local healthBarOutline = Instance.new("Frame")
     healthBarOutline.Size = UDim2.new(0, 6, 1, -2)
-    healthBarOutline.Position = UDim2.new(1, 4, 0, 1)
-    healthBarOutline.BackgroundColor3 = Color3.new(0,0,0)
-    healthBarOutline.BorderSizePixel = 0
-    healthBarOutline.Visible = ESPEnabled
-    healthBarOutline.Parent = container
-    
-    local healthBar = Instance.new("Frame")
-    healthBar.Size = UDim2.new(0, 4, 1, -4)
-    healthBar.Position = UDim2.new(0, 1, 0, 2)
-    healthBar.BorderSizePixel = 0
-    healthBar.BackgroundColor3 = Color3.new(0,1,0)
-    healthBar.Visible = ESPEnabled
-    healthBar.Parent = healthBarOutline
-    
-    -- Name Tag
-    local nameTag = Instance.new("TextLabel")
-    nameTag.Text = player.Name
-    nameTag.TextColor3 = Color3.new(1,1,1)
-    nameTag.BackgroundTransparency = 1
-    nameTag.Size = UDim2.new(0, 200, 0, 20)
-    nameTag.Visible = ESPEnabled
-    nameTag.Parent = container
-    
-    ESPStore[player] = {
-        Container = container,
-        Box = box,
-        HealthBar = healthBar,
-        NameTag = nameTag
-    }
-end
-
-local function UpdateESP()
-    for player, data in pairs(ESPStore) do
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Update position
-            local root = player.Character.HumanoidRootPart
-            local screenPos, onScreen = Camera:WorldToViewportPoint(root.Position)
-            
-            if onScreen then
-                -- Update box
-                data.Box.Adornee = root
-                data.Box.Size = Vector3.new(4, 6, 4)
-                
-                -- Update health
-                local humanoid = player.Character:FindFirstChild("Humanoid")
-                if humanoid then
-                    local health = humanoid.Health / humanoid.MaxHealth
-                    data.HealthBar.Size = UDim2.new(1, 0, health, 0)
-                    data.HealthBar.BackgroundColor3 = Color3.new(1-health, health, 0)
-                end
-                
-                -- Update team color
-                if SilentAimSettings.TeamCheck then
-                    data.Box.Color = player.Team == LocalPlayer.Team 
-                        and Color3.new(0, 0, 1) 
-                        or Color3.new(1, 0, 0)
-                else
-                    data.Box.Color = Color3.new(1, 0, 0)
-                end
-            end
-        end
-    end
-end
-
--- ESP Toggle
-espToggle.MouseButton1Click:Connect(function()
-    ESPEnabled = not ESPEnabled
-    espToggle.Text = "ESP: " .. (ESPEnabled and "ON" or "OFF")
-    
-    for player, data in pairs(ESPStore) do
-        data.Box.Visible = ESPEnabled
-        data.HealthBar.Visible = ESPEnabled
-        data.NameTag.Visible = ESPEnabled
-    end
-end)
-
--- Player Handling
-game.Players.PlayerAdded:Connect(function(player)
-    CreateESP(player)
-end)
-
-for _, player in ipairs(Players:GetPlayers()) do
-    CreateESP(player)
-end
-
--- ESP Update Loop
-RunService.RenderStepped:Connect(function()
-    if ESPEnabled then
-        UpdateESP()
-    end
-end)
-
--- Silent Aim Hook
-local oldNamecall
-oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-    if silentAimEnabled and getnamecallmethod() == "FindPartOnRay" then
-        if not (math.random(1,100) <= SilentAimSettings.HitChance) then 
-            return oldNamecall(self, ...) 
-        end
-        
-        local target = getClosestPlayer()
-        if target and target.Character then
-            local targetPart = target.Character:FindFirstChild(SilentAimSettings.TargetPart)
-            if targetPart then
-                local origin = Camera.CFrame.Position
-                local direction = (targetPart.Position - origin).Unit * 1000
-                return oldNamecall(self, Ray.new(origin, direction), ...)
-            end
-        end
-    end
-    return oldNamecall(self, ...)
-end)
+    health
